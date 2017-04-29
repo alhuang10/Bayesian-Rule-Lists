@@ -34,22 +34,25 @@ data_only_complete['Sex'] = data_only_complete['Sex'].apply(lambda x: str.title(
 print("Number of Samples:", len(data_only_complete))
 
 
-
 # Frequent-Pattern (FP) Growth Algorithm for Titanic:
 
 # Algorithm Parameters
 min_support_threshold = .05 # Elements that do not meet the support threshold are excluded
-antecedent_length = 2 # Length of antecedent lists to retrieve
+max_antecedent_length = 2 # Length of antecedent lists to retrieve
 
 data_matrix = data_only_complete.as_matrix()
 num_samples = len(data_matrix)
 
 counts = defaultdict(int)
+attribute_index =  {} # Keeps track of the index of an attribute in the data
 
 # Construct the counts list
 for person_features in data_matrix:
-    for attribute in person_features:
+    for i, attribute in enumerate(person_features):
         counts[attribute] += 1
+
+        if attribute not in attribute_index:
+        	attribute_index[attribute] = i
 
 print("Feature Counts:", list(counts.items()))
 
@@ -72,11 +75,21 @@ for sample in data_matrix:
 
 # Run FP-Growth algorithm to find the frequent itemsets
 output_itemsets = []
-print(num_samples, min_support_threshold, antecedent_length)
+print(num_samples, min_support_threshold, max_antecedent_length)
 
-find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, antecedent_length)
+antecedent_list = find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, max_antecedent_length, attribute_index)
+
 
 print("Output Itemsets:\n", output_itemsets)
+
+    
+def create_expressions(ant_list):
+	expression = [Expression(attribute_index[ant], operator.eq, ant) for ant in ant_list]
+	return expression
+
+expressions_list = [create_expressions(ant_list) for ant_list in output_itemsets]
+antecedent_list = [Antecedent(expression) for expression in expressions_list]
+antecedent_group = AntecedentGroup(antecedent_list)
 
 
 

@@ -1,13 +1,16 @@
 # FP-Growth classes and methods
-
+# from utils import *
 import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'
+import operator
 
+pd.options.mode.chained_assignment = None  # default='warn'
+from brl.utils import *
 from collections import defaultdict
 
 # Finds itemsets of all lengths, can add functionality to support min_length or certain length only
-def find_itemsets(current_tree, suffixes_found, output_list, total_transactions, min_support, antecedent_length):
-    
+def find_itemsets(current_tree, suffixes_found, output_list, total_transactions, min_support, max_antecedent_length, attribute_index):
+   
+
     reverse_ordering = sorted(list(current_tree.item_counts.keys()), key=current_tree.item_counts.get)
         
     for attribute in reverse_ordering:
@@ -23,12 +26,15 @@ def find_itemsets(current_tree, suffixes_found, output_list, total_transactions,
             new_suffix_set.extend(suffixes_found)
             
             # Only get specific length antecedents
-            if len(new_suffix_set) == antecedent_length:
-                output_list.append((new_suffix_set, support))
+            if len(new_suffix_set) <= max_antecedent_length:
+                # output_list.append((new_suffix_set, support))
+                output_list.append(new_suffix_set)
             
             conditional_tree = create_conditional_tree(current_tree.get_prefix_paths(attribute))
-            find_itemsets(conditional_tree, new_suffix_set, output_list, total_transactions, min_support, antecedent_length)
+            find_itemsets(conditional_tree, new_suffix_set, output_list, total_transactions, min_support, max_antecedent_length, attribute_index)
     
+    # output_list is now a list of antecedent lists
+
 # Create a conditional tree using paths generated from get_prefix_paths
 def create_conditional_tree(paths):
     tree = FP_Tree()
