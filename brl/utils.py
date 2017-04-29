@@ -19,52 +19,30 @@ class Antecedent(object):
     def length(self):
         return len(self.expressions)
 
-class Consequent(object):
-    def __init__(self, probabilities):
-        self.probabilities = probabilities
-
-    def evaluate(self, y):
-        return self.probabilities[y]
-
-class IfThenBlock(object):
-    def __init__(self, antecedent, consequent):
-        self.antecedent = antecedent
-        self.consequent = consequent
-
-    def checkIf(self, x):
-        return self.antecedent.evaluate(x)
-
-    def evaluate(self, y):
-        return self.consequent.evaluate(y)
-
-    def getAntecedent(self):
-        return self.antecedent
-
 class BayesianRuleList(object):
-    def __init__(self, ifThenBlocks, defaultConsequent):
-        self.ifThenBlocks = ifThenBlocks
-        self.defaultConsequent = defaultConsequent
+    def __init__(self, antecedents):
+        self.antecedents = antecedents
 
     def length(self):
-        return len(self.ifThenBlocks)
+        return len(self.antecedents)
 
-    def getAntecedentByIndex(self, idx):
-        return self.ifThenBlocks[idx].getAntecedent()
+    def get_antecedent_by_index(self, idx):
+        return self.antecedents[idx]
 
-    def evaluate(self, x, y):
-        for block in self.ifThenBlocks:
-            if block.checkIf(x):
-                return block.evaluate(y)
-        return self.defaultConsequent.evaluate(y)
+    def get_first_antecedent_index(self, x):
+        for i in range(len(antecedents)):
+            if antecedents[i].evaluate(x):
+                return i
+        return self.length()
 
 class AntecedentGroup(object):
     def __init__(self, antecedents):
-        self.antecedentsBySize = defaultdict(list)
+        self.antecedents_by_size = defaultdict(list)
         for antecedent in antecedents:
-            self.antecedentsBySize[antecedent.length()].append(antecedent)
+            self.antecedents_by_size[antecedent.length()].append(antecedent)
 
     def sizes(self):
-        return self.antecedentsBySize.keys()
+        return self.antecedents_by_size.keys()
 
-    def lengthsBySize(self):
-        return {k: len(v) for k, v in self.antecedentsBySize.items()}
+    def lengths_by_size(self):
+        return {k: len(v) for k, v in self.antecedents_by_size.items()}

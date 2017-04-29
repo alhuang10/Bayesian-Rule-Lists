@@ -3,12 +3,20 @@ import pandas as pd
 
 OPTIMIZATION_THRESHOLD = 10
 
-# p(y|x,d)
-def p_y(y, x, d):
-    prob = 1.0
+# proportional to p(y|x,d,alpha)
+def p_y(y, x, d, alpha):
+    n = [[0 for col in range(len(alpha))] for row in range(d.length() + 1)]
     for i in range(len(x)):
-        prob *= d.evaluate(x[i], y[i])
-    return prob
+        n[d.get_first_antecedent_index(x[i])][y[i]] += 1
+
+    prod = 1.0
+    for i in range(d.length() + 1):
+        sum_i = 0
+        for j in range(len(alpha)):
+            sum_i += n[i][j] + alpha[j]
+            prod *= math.gamma(n[i][j] + alpha[j])
+        prod /= math.gamma(sum_i)
+    return prod
 
 # product from j=1 to m of p(a_j|a_1,...a_{j-1},a)
 def p_a(d, a):
@@ -24,8 +32,8 @@ def p_a(d, a):
 
     prod = 1.0
     for i in range(d.length()):
-        ant_len = d.getAntecedentByIndex(i).length()
-        prod *= 1.0 / (a.lengthsBySize[ant_len] - sizes[ant_len])
+        ant_len = d.get_antecedent_by_index(i).length()
+        prod *= 1.0 / (a.lengths_by_size()[ant_len] - sizes[ant_len])
         sizes[ant_len] += 1
     return prod
 
@@ -44,7 +52,7 @@ def p_c(d, a, eta):
 
     prod = 1.0
     for i in range(d.length()):
-        ant_len = d.getAntecedentByIndex(i).length()
+        ant_len = d.get_antecedent_by_index(i).length()
         prod *= (pow(eta,ant_len) / (math.factorial(ant_len) * normalizer))
     return prod
 
@@ -60,7 +68,7 @@ def p_m(m, a, lmda):
     """
     R = a.length()
 
-    # Closed form approximation when length of pre-mind antecedents is sufficently larger
+    # Closed form approximation when length of pre-mined antecedents is sufficently larger
     if R >= OPTIMIZATION_THRESHOLD * m
         return (pow(lmda, m)) / (math.factorial(m) * pow(math.e,m))
     
@@ -86,4 +94,4 @@ def p_d_given_data(d, x, y, a, alpha, lmda, eta):
 
     alpha: hyperparameter for Dirichlet prior
     """
-    return p_d(d, a, lmda, eta) * p_y(y, x, d)
+    return p_d(d, a, lmda, eta) * p_y(y, x, d, alpha)
