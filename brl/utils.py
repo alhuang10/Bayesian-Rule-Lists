@@ -51,6 +51,12 @@ class BayesianRuleList(object):
     def getAntecedentByIndex(self, idx):
         return self.ifThenBlocks[idx].getAntecedent()
 
+    def evaluate(self, x, y):
+        for block in self.ifThenBlocks:
+            if block.checkIf(x):
+                return block.evaluate(y)
+        return self.defaultConsequent.evaluate(y)
+
 class AntecedentGroup(object):
     def __init__(self, antecedents):
         self.antecedentsBySize = defaultdict(list)

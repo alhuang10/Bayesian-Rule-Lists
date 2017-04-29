@@ -3,9 +3,12 @@ import pandas as pd
 
 OPTIMIZATION_THRESHOLD = 10
 
-# p(y|x,d,alpha)
-def p_y(y, x, d, alpha):
-    pass
+# p(y|x,d)
+def p_y(y, x, d):
+    prob = 1.0
+    for i in range(len(x)):
+        prob *= d.evaluate(x[i], y[i])
+    return prob
 
 # product from j=1 to m of p(a_j|a_1,...a_{j-1},a)
 def p_a(d, a):
@@ -27,7 +30,6 @@ def p_a(d, a):
     return prod
 
 # product from i=1 to m of p(c_j|c_1,...c_{j-1},a,eta)
-# 
 def p_c(d, a, eta):
     """
     Sampling of antecedent cardinalities, c_j represents the cardinality of the j-th antecedent in the list d, (Page 6)
@@ -84,4 +86,4 @@ def p_d_given_data(d, x, y, a, alpha, lmda, eta):
 
     alpha: hyperparameter for Dirichlet prior
     """
-    return p_d(d, a, lmda, eta) * p_y(y, x, d, alpha)
+    return p_d(d, a, lmda, eta) * p_y(y, x, d)
