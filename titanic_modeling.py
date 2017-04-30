@@ -1,8 +1,8 @@
-from antecedent_mining import *
+from brl.antecedent_mining import *
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
-
 from collections import defaultdict
+from brl.mcmc import *
 
 # Titanic Data Processing
 def convert_class(passenger_class):
@@ -21,10 +21,12 @@ def convert_age(age):
         return "Child"
 
 data = pd.DataFrame.from_csv("data/titanic_dataset/train.csv")
-data_only_relevant_features =  data[['Pclass', 'Sex', 'Age']]
+data_only_relevant_features =  data[['Survived','Pclass', 'Sex', 'Age']]
+data_only_relevant_features = data_only_relevant_features.dropna() # Remove rows with missing information
 
-data_only_complete = data_only_relevant_features.dropna() # Remove rows with missing information
+outcomes = data_only_relevant_features['Survived'].values.flatten()
 
+data_only_complete = data_only_relevant_features[['Pclass', 'Sex', 'Age']]
 # Convert data into categorical variables
 data_only_complete['Pclass'] = data_only_complete['Pclass'].apply(convert_class)
 data_only_complete['Age'] = data_only_complete['Age'].apply(convert_age)
@@ -37,8 +39,8 @@ print("Number of Samples:", len(data_only_complete))
 # Frequent-Pattern (FP) Growth Algorithm for Titanic:
 
 # Algorithm Parameters
-min_support_threshold = .05 # Elements that do not meet the support threshold are excluded
-max_antecedent_length = 2 # Length of antecedent lists to retrieve
+min_support_threshold = .1 # Elements that do not meet the support threshold are excluded
+max_antecedent_length = 3 # Max length of antecedent lists to retrieve
 
 data_matrix = data_only_complete.as_matrix()
 num_samples = len(data_matrix)
@@ -77,12 +79,17 @@ for sample in data_matrix:
 output_itemsets = []
 print(num_samples, min_support_threshold, max_antecedent_length)
 
-antecedent_list = find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, max_antecedent_length, attribute_index)
+find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, max_antecedent_length, attribute_index)
 
+def all_unique(test_list):
+    for i in range(len(test_list)):
+        for j in range(i+1, len(test_list)):
+            if test_list[i] == test_list[j]:
+                return False
+    return True
 
-print("Output Itemsets:\n", output_itemsets)
+print(all_unique(output_itemsets))
 
-    
 def create_expressions(ant_list):
 	expression = [Expression(attribute_index[ant], operator.eq, ant) for ant in ant_list]
 	return expression
@@ -91,6 +98,18 @@ expressions_list = [create_expressions(ant_list) for ant_list in output_itemsets
 antecedent_list = [Antecedent(expression) for expression in expressions_list]
 antecedent_group = AntecedentGroup(antecedent_list)
 
+
+# MCMC Parameters
+alpha = [1,1]
+lmda = 1
+eta = 1
+num_iterations = 1000
+
+generated_samples = brl_metropolis_hastings(num_iterations, data_matrix, outcomes, antecedent_group, alpha, lmda, eta)
+
+lengths = [ant.length() for ant in generated_samples]
+
+print("Average Antecedent List Length:", sum(lengths) / len(lengths))
 
 
 

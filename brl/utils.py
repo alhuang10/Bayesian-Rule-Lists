@@ -10,15 +10,28 @@ class Expression(object):
     def evaluate(self, x):
         return self.op(x[self.index], self.value)
 
+    # def __eq__(self, other_exp):
+    #     return self.index == other_exp.index and self.value == other_exp.value and self.op == other_exp.op
+
 class Antecedent(object):
     def __init__(self, expressions):
         self.expressions = expressions
 
     def evaluate(self, x):
-        return all(exp.evaluate(x) for exp in expressions)
+        return all(exp.evaluate(x) for exp in self.expressions)
 
     def length(self):
         return len(self.expressions)
+
+    # def __eq__(self, other):
+
+    #     if self.length() != other.length():
+    #         return False
+
+    #     for i in range(self.length()):
+    #         if self.expressions[i] != other.expressions[i]:
+    #             return False
+    #     return True
 
 class AntecedentList(object):
     def __init__(self, antecedents):
@@ -31,13 +44,14 @@ class AntecedentList(object):
         return self.antecedents[idx]
 
     def get_first_antecedent_index(self, x):
-        for i in range(len(antecedents)):
-            if antecedents[i].evaluate(x):
+        for i in range(len(self.antecedents)):
+            if self.antecedents[i].evaluate(x):
                 return i
         return self.length()
 
     def contains(self, antecedent):
-        return antecedent in self.antecedents
+        return any(antecedent == current_ant for current_ant in self.antecedents)
+        # return antecedent in self.antecedents
 
     def move_antecedents(self, i , j):
         temp = self.antecedents.pop(i)
@@ -48,6 +62,9 @@ class AntecedentList(object):
 
     def add_antecedent(self, i, antecedent):
         self.antecedents.insert(i, antecedent)
+
+    # def __eq__(self, other):
+    #     return self.antecedents == other.antecedents
 
 class AntecedentGroup(object):
     def __init__(self, antecedents):
@@ -67,3 +84,6 @@ class AntecedentGroup(object):
 
     def get_random_antecedent(self):
         return self.antecedents[random.randint(0, len(self.antecedents) - 1)]
+
+    def get_antecedents_by_length(self, length):
+        return self.antecedents_by_size[length]
