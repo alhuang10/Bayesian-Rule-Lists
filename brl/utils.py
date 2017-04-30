@@ -1,4 +1,5 @@
 from collections import defaultdict
+import random
 
 class Expression(object):
     def __init__(self, index, op, value):
@@ -19,7 +20,7 @@ class Antecedent(object):
     def length(self):
         return len(self.expressions)
 
-class BayesianRuleList(object):
+class AntecedentList(object):
     def __init__(self, antecedents):
         self.antecedents = antecedents
 
@@ -35,9 +36,23 @@ class BayesianRuleList(object):
                 return i
         return self.length()
 
+    def contains(self, antecedent):
+        return antecedent in self.antecedents
+
+    def move_antecedents(self, i , j):
+        temp = self.antecedents.pop(i)
+        self.antecedents.insert(j, temp)
+
+    def remove_antecedent(self, i):
+        del self.antecedents[i]
+
+    def add_antecedent(self, i, antecedent):
+        self.antecedents.insert(i, antecedent)
+
 class AntecedentGroup(object):
     def __init__(self, antecedents):
         self.antecedents_by_size = defaultdict(list)
+        self.antecedents = antecedents
         for antecedent in antecedents:
             self.antecedents_by_size[antecedent.length()].append(antecedent)
 
@@ -46,3 +61,9 @@ class AntecedentGroup(object):
 
     def lengths_by_size(self):
         return {k: len(v) for k, v in self.antecedents_by_size.items()}
+
+    def length(self):
+        return sum(self.lengths_by_size().values())
+
+    def get_random_antecedent(self):
+        return self.antecedents[random.randint(0, len(self.antecedents) - 1)]

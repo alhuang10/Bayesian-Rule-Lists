@@ -68,7 +68,7 @@ def p_m(m, a, lmda):
     """
     R = a.length()
 
-    # Closed form approximation when length of pre-mined antecedents is sufficently larger
+    # Closed form approximation when length of pre-mind antecedents is sufficently larger
     if R >= OPTIMIZATION_THRESHOLD * m
         return (pow(lmda, m)) / (math.factorial(m) * pow(math.e,m))
     
