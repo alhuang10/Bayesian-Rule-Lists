@@ -38,6 +38,11 @@ def generate_remove_proposal(current_d, all_antecedents):
     return proposed_d, prob_backward / prob_forward
 
 def generate_add_proposal(current_d, all_antecedents):
+    '''
+    all_antecedents - AntecedentGroup
+    current_d - current list, AntecedentList
+    '''
+
     proposed_d = copy.deepcopy(current_d)
 
     antecedent = all_antecedents.get_random_antecedent()
@@ -57,6 +62,7 @@ def generate_add_proposal(current_d, all_antecedents):
 
 
 def generate_proposal(current_d, all_antecedents):
+
     while True:
         proposal_type = random.randint(0, 2)
         if proposal_type == MOVE_TYPE:
@@ -97,6 +103,10 @@ def check_accepted(proposed_d, current_d, all_antecedents, x, y, move_ratio, alp
 # TODO - burn in
 # TODO - convergence
 def brl_metropolis_hastings(num_iterations, x, y, all_antecedents, alpha, lmda, eta):
+
+    '''
+    all_antecedents - AntecedentGroup
+    '''
     current_d = generate_default_antecedent_list(all_antecedents, lmda, eta)
 
     assert current_d.length() != 0

@@ -3,6 +3,7 @@ import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
 from collections import defaultdict
 from brl.mcmc import *
+import time
 
 # Titanic Data Processing
 def convert_class(passenger_class):
@@ -31,10 +32,6 @@ data_only_complete = data_only_relevant_features[['Pclass', 'Sex', 'Age']]
 data_only_complete['Pclass'] = data_only_complete['Pclass'].apply(convert_class)
 data_only_complete['Age'] = data_only_complete['Age'].apply(convert_age)
 data_only_complete['Sex'] = data_only_complete['Sex'].apply(lambda x: str.title(x))
-
-# 714 samples
-print("Number of Samples:", len(data_only_complete))
-
 
 # Frequent-Pattern (FP) Growth Algorithm for Titanic:
 
@@ -77,7 +74,7 @@ for sample in data_matrix:
 
 # Run FP-Growth algorithm to find the frequent itemsets
 output_itemsets = []
-print(num_samples, min_support_threshold, max_antecedent_length)
+print("Number of Samples:", num_samples, "Minimum Support Threshold:", min_support_threshold, "Max Antecedent Length:", max_antecedent_length)
 
 find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, max_antecedent_length, attribute_index)
 
@@ -88,7 +85,8 @@ def all_unique(test_list):
                 return False
     return True
 
-print(all_unique(output_itemsets))
+for item in output_itemsets:
+    print(item)
 
 def create_expressions(ant_list):
 	expression = [Expression(attribute_index[ant], operator.eq, ant) for ant in ant_list]
@@ -98,8 +96,9 @@ expressions_list = [create_expressions(ant_list) for ant_list in output_itemsets
 antecedent_list = [Antecedent(expression) for expression in expressions_list]
 antecedent_group = AntecedentGroup(antecedent_list)
 
-
 # MCMC Parameters
+start = time.clock()
+
 alpha = [1,1]
 lmda = 1
 eta = 1
@@ -111,5 +110,8 @@ lengths = [ant.length() for ant in generated_samples]
 
 print("Average Antecedent List Length:", sum(lengths) / len(lengths))
 
+end = time.clock()
+
+print("Runtime in seconds:", end - start)
 
 

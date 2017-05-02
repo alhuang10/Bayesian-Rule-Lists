@@ -2,58 +2,75 @@ import math
 import pandas as pd
 import random
 from .utils import *
+from collections import defaultdict
+import time
 
 OPTIMIZATION_THRESHOLD = 10
 
 def generate_default_antecedent_list(all_antecedents, lmda, eta):
 
-    p = random.random()
+    '''
+    lmda - parameter for Poisson distribution for selecting length of the antecedent list
+    eta - parameter for Poisson distribution for selecting cardinality of each antecedent
+    '''
+
+    p_list = random.random()
     sum = 0.0
     sampled_antecedent_list_length = None
 
-    # Sample the length of the antecedent list
+    # Sample the length of the antecedent list, truncated Poisson
     for m in range(1, all_antecedents.length()+1):
         sum += math.exp(p_m(m, all_antecedents, lmda))
-        if sum > p:
+        if sum > p_list:
             sampled_antecedent_list_length = m
             break
 
-    print(sum, p, sampled_antecedent_list_length, all_antecedents.length())
+    print("p_list:", p_list, "Sampled Antecedent List Length:", sampled_antecedent_list_length, "Total Number Antecedents", all_antecedents.length())
 
     antecedent_list = []
+    indices_selected_by_length = defaultdict(set) #maps lengths to indices already selected, for ensuring we do not select duplicates
+    # antecedent_lengths_exhausted = []
+    available_antecedent_sizes = all_antecedents.sizes()
+    print("Sizes:", available_antecedent_sizes)
 
-    iterations = 0
-    while True:
+    number_of_lists_sampled = 0.0
+    while number_of_lists_sampled < sampled_antecedent_list_length:
         # For each antecedent in the list, sample the cardinality and get from all_antecedents
-        for i in range(1,sampled_antecedent_list_length+1):
-            p = random.random()
-            sum = 0.0
-            sampled_ant_cardinality = None
+        
+        p_card = random.random()
+        sum = 0.0
+        sampled_antecedent_cardinality = None
 
-            denominator = 0.0
-            # Potential change if A runs out of antecedents
-            for k in all_antecedents.sizes():
-                denominator += (pow(eta, k) / math.factorial(k))
+        denominator = 0.0
+        # Potential change if A runs out of antecedents
+        for k in all_antecedents.sizes():
+            denominator += (pow(eta, k) / math.factorial(k))
 
-            for c in all_antecedents.sizes():
-                sum += (pow(eta, c) / math.factorial(c)) / denominator
-                if sum > p:
-                    sampled_ant_cardinality = c
+        for c in all_antecedents.sizes():
+            sum += (pow(eta, c) / math.factorial(c)) / denominator
+            if sum > p_card:
+                sampled_antecedent_cardinality = c
+                break
 
-            correct_length_antecedents = all_antecedents.get_antecedents_by_length(sampled_ant_cardinality)
-            antecedent_list.append(correct_length_antecedents[random.randint(0, len(correct_length_antecedents)-1)])
+        print("p_card:", p_card, "Sampled Antecedent Cardinality", sampled_antecedent_cardinality)
 
+        correct_length_antecedents = all_antecedents.get_antecedents_by_length(sampled_antecedent_cardinality)
+        list_of_available_indices = list(set(range(len(correct_length_antecedents)-1)) - indices_selected_by_length[sampled_antecedent_cardinality])
 
-        # Some temporary shit to check that we have no duplicates
-        if len(antecedent_list) == len(set(antecedent_list)):
-            break
+        # If there's only one available and we select it, mark that there are no more left
+        if len(list_of_available_indices) == 1:
+            print("Removing cardinality:", sampled_antecedent_cardinality)
+            available_antecedent_sizes.remove(sampled_antecedent_cardinality)
 
-        iterations += 1
+        selected_index = random.choice(list_of_available_indices) # select an index that we haven't already
+        assert selected_index not in indices_selected_by_length[sampled_antecedent_cardinality]
+        indices_selected_by_length[sampled_antecedent_cardinality].add(selected_index)
 
-        if iterations > 1000:
-            print("Failed to sample unique elements, proceeding")
-            antecedent_list = [ant for ant in iter(set(antecedent_list))]
-            break
+        antecedent_list.append(correct_length_antecedents[selected_index])
+
+        print("Indices selected by cardinality length:", indices_selected_by_length)
+
+        number_of_lists_sampled += 1
 
     return AntecedentList(antecedent_list)
 
@@ -89,7 +106,7 @@ def p_a(d, a):
         ant_len = d.get_antecedent_by_index(i).length()
 
         # print(ant_len, a.lengths_by_size()[ant_len], sizes[ant_len])
-        
+
         prod *= 1.0 / (a.lengths_by_size()[ant_len] - sizes[ant_len])
         sizes[ant_len] += 1
     return math.log(prod)
