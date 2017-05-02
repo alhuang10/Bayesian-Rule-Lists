@@ -25,13 +25,13 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
             sampled_antecedent_list_length = m
             break
 
-    print("p_list:", p_list, "Sampled Antecedent List Length:", sampled_antecedent_list_length, "Total Number Antecedents", all_antecedents.length())
+    print("Sampled Antecedent List Length:", sampled_antecedent_list_length, "Total Number Antecedents", all_antecedents.length())
 
     antecedent_list = []
     indices_selected_by_length = defaultdict(set) #maps lengths to indices already selected, for ensuring we do not select duplicates
     # antecedent_lengths_exhausted = []
     available_antecedent_sizes = all_antecedents.sizes()
-    print("Sizes:", available_antecedent_sizes)
+    print("Available Antecedent Sizes:", available_antecedent_sizes)
 
     number_of_lists_sampled = 0.0
     while number_of_lists_sampled < sampled_antecedent_list_length:
@@ -52,7 +52,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
                 sampled_antecedent_cardinality = c
                 break
 
-        print("p_card:", p_card, "Sampled Antecedent Cardinality", sampled_antecedent_cardinality)
+        print("Sampled Antecedent Cardinality", sampled_antecedent_cardinality)
 
         correct_length_antecedents = all_antecedents.get_antecedents_by_length(sampled_antecedent_cardinality)
         list_of_available_indices = list(set(range(len(correct_length_antecedents)-1)) - indices_selected_by_length[sampled_antecedent_cardinality])
@@ -67,10 +67,9 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
         indices_selected_by_length[sampled_antecedent_cardinality].add(selected_index)
 
         antecedent_list.append(correct_length_antecedents[selected_index])
-
-        print("Indices selected by cardinality length:", indices_selected_by_length)
-
         number_of_lists_sampled += 1
+        
+    print("Indices selected by cardinality length:", indices_selected_by_length)
 
     return AntecedentList(antecedent_list)
 

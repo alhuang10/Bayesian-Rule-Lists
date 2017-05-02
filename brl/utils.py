@@ -10,8 +10,8 @@ class Expression(object):
     def evaluate(self, x):
         return self.op(x[self.index], self.value)
 
-    # def __eq__(self, other_exp):
-    #     return self.index == other_exp.index and self.value == other_exp.value and self.op == other_exp.op
+    def __eq__(self, other_exp):
+        return self.index == other_exp.index and self.value == other_exp.value and self.op == other_exp.op
 
 class Antecedent(object):
     def __init__(self, expressions):
@@ -23,19 +23,30 @@ class Antecedent(object):
     def length(self):
         return len(self.expressions)
 
-    # def __eq__(self, other):
+    def __eq__(self, other):
 
-    #     if self.length() != other.length():
-    #         return False
+        if self.length() != other.length():
+            return False
 
-    #     for i in range(self.length()):
-    #         if self.expressions[i] != other.expressions[i]:
-    #             return False
-    #     return True
+        for i in range(self.length()):
+            if self.expressions[i] != other.expressions[i]:
+                return False
+        return True
+
+    def print_antecedent(self):
+        exp_string = ""
+        for exp in self.expressions:
+            exp_string += exp.value
+            exp_string +=", "
+        print(exp_string)
+            
 
 class AntecedentList(object):
     def __init__(self, antecedents):
         self.antecedents = antecedents
+
+    def get_antecedents(self):
+        return self.antecedents
 
     def length(self):
         return len(self.antecedents)
@@ -51,7 +62,6 @@ class AntecedentList(object):
 
     def contains(self, antecedent):
         return any(antecedent == current_ant for current_ant in self.antecedents)
-        # return antecedent in self.antecedents
 
     def move_antecedents(self, i , j):
         temp = self.antecedents.pop(i)
@@ -63,8 +73,13 @@ class AntecedentList(object):
     def add_antecedent(self, i, antecedent):
         self.antecedents.insert(i, antecedent)
 
-    # def __eq__(self, other):
-    #     return self.antecedents == other.antecedents
+    def get_average_cardinality(self):
+        cardinalities = [antecedent.length() for antecedent in self.antecedents]
+        return sum(cardinalities) / len(cardinalities)
+
+    def print_antecedent_list(self):
+        for antecedent in self.antecedents:
+            antecedent.print_antecedent()
 
 class AntecedentGroup(object):
     def __init__(self, antecedents):
