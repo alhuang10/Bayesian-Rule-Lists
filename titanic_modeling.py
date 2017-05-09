@@ -129,13 +129,14 @@ def find_brl():
     alpha = [1,1]
     lmda = 3
     eta = 1
-    num_iterations = 1000
-    burn_in = 100
+    num_iterations = 2000
+    burn_in = 0
+    convergence_threshold = 1.10
 
     print("\nMCMC Parameters:")
-    print("Alpha", alpha, "\n", "Lambda:", lmda, "\n", "Eta:", eta, "\n", "Number Iterations:", num_iterations, "\n", "Burn In", burn_in, "\n")
+    print("Alpha", alpha, "\n", "Lambda:", lmda, "\n", "Eta:", eta, "\n", "Min Number Iterations:", num_iterations, "\n", "Burn In", burn_in, "\n", "Convergence Threshold:", convergence_threshold, "\n")
 
-    generated_samples = brl_metropolis_hastings(num_iterations, burn_in, data_matrix, outcomes, all_antecedents, alpha, lmda, eta)
+    generated_samples = brl_metropolis_hastings(num_iterations, burn_in, convergence_threshold, data_matrix, outcomes, all_antecedents, alpha, lmda, eta)
 
     antecedent_list_lengths = [ant_list.length() for ant_list in generated_samples]
     average_antecedent_list_length = sum(antecedent_list_lengths) / len(antecedent_list_lengths)
@@ -147,7 +148,7 @@ def find_brl():
         for ant in ant_list.antecedents:
             total_cardinality += ant.length() 
 
-    average_cardinality = total_cardinality/num_antecedents
+    average_cardinality = total_cardinality / num_antecedents
 
     print("Average Antecedent List Length:", average_antecedent_list_length)
     print("Average Antecedent Cardinality:", average_cardinality)

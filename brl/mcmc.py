@@ -8,6 +8,8 @@ MOVE_TYPE = 0
 REMOVE_TYPE = 1
 ADD_TYPE = 2
 
+NUM_CHAINS = 3
+
 def generate_move_proposal(current_d):
     proposed_d = copy.deepcopy(current_d)
 
@@ -68,39 +70,64 @@ def check_accepted(proposed_d, current_d, all_antecedents, x, y, move_ratio, alp
         math.exp(p_d_given_data(current_d, x, y, all_antecedents, alpha, lmda, eta))))
     return random.random() < threshold
 
-# TODO - burn in
-# TODO - convergence
-def brl_metropolis_hastings(num_iterations, burn_in, x, y, all_antecedents, alpha, lmda, eta):
+def check_gelman_rubin(chains, means, variances, threshold, x, y, all_antecedents, alpha, lmda, eta):
+    samples = len(chains[0])
+    if samples < 2:
+        return False
+
+    for i in range(NUM_CHAINS):
+        val = p_d_given_data(chains[i][samples - 1], x, y, all_antecedents, alpha, lmda, eta)
+        updated_mean = ((samples - 1) * means[i] + val) / samples
+        updated_variance = ((samples - 2) * variances[i] + (val - updated_mean) * (val - means[i])) / (samples - 1)
+        means[i] = updated_mean
+        variances[i] = updated_variance
+
+    w = 0
+    for i in range(NUM_CHAINS):
+        w += variances[i]
+    w /= NUM_CHAINS
+
+    mean_of_means = sum(means) / NUM_CHAINS
+    b = 0
+    for i in range(NUM_CHAINS):
+        b += pow(mean_of_means - means[i], 2)
+    b *= samples / (NUM_CHAINS - 1)
+
+    v = ((samples - 1) * w + (NUM_CHAINS + 1) * b / NUM_CHAINS) / samples
+
+    psrf = v / w
+    return psrf < threshold
+
+def brl_metropolis_hastings(min_num_iterations, burn_in, convergence_threshold, x, y, all_antecedents, alpha, lmda, eta):
     '''
     all_antecedents - AntecedentGroup
-    num_iterations - number of iterations to run the chain for
+    min_num_iterations - minimum number of iterations to run the chains for
     burn_in - amount of time to let the chain burn in
     '''
-    current_d = generate_default_antecedent_list(all_antecedents, lmda, eta)
-
-    assert current_d.length() > 0
-
+    current_ds = []
     all_ds = []
+    means = []
+    variances = []
+    for i in range(NUM_CHAINS):
+        current_ds.append(generate_default_antecedent_list(all_antecedents, lmda, eta))
+        all_ds.append([])
+        means.append(0)
+        variances.append(0)
 
-    def all_unique(test_list):
-        for i in range(len(test_list)):
-            for j in range(i+1, len(test_list)):
-                if test_list[i] == test_list[j]:
-                    return False
-        return True
-
-    for i in range(0, num_iterations):
+    i = 0
+    while not check_gelman_rubin(all_ds, means, variances, convergence_threshold, x, y, all_antecedents, alpha, lmda, eta) or i < min_num_iterations:
         if i % 100 == 0:
             print("Iteration: %d" % (i))
 
-        assert all_unique(current_d.antecedents)
+        for j in range(NUM_CHAINS):
+            proposed_d, proposal_prob_ratio = generate_proposal(current_ds[j], all_antecedents)
 
-        proposed_d, proposal_prob_ratio = generate_proposal(current_d, all_antecedents)
+            if check_accepted(proposed_d, current_ds[j], all_antecedents, x, y, proposal_prob_ratio, alpha, lmda, eta):
+                current_ds[j] = proposed_d
 
-        if check_accepted(proposed_d, current_d, all_antecedents, x, y, proposal_prob_ratio, alpha, lmda, eta):
-            current_d = proposed_d
+            if i >= burn_in:
+                all_ds[j].append(current_ds[j])
 
-        if i >= burn_in:
-            all_ds.append(current_d)
+        i += 1
 
-    return all_ds
+    return all_ds[0]
