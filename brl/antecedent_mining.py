@@ -6,8 +6,57 @@ import operator
 from .utils import *
 from collections import defaultdict
 
+def generate_antecedent_list(data_matrix, num_samples, min_support_threshold, max_antecedent_length):
+    
+    counts = defaultdict(int)
+    attribute_indices =  {} # Keeps track of the index of an attribute in the data
+
+    # Construct the counts list
+    for person_features in data_matrix:
+        for i, attribute in enumerate(person_features):
+            counts[attribute] += 1
+
+            if attribute not in attribute_indices:
+                attribute_indices[attribute] = i
+
+    print("Feature Counts:", list(counts.items()))
+
+    # Prune the counts list, remove every element that has support lower than the threshold
+    pruned_counts = {k: v for k,v in counts.items() if v/num_samples > min_support_threshold}
+
+    # Sort the pruned counts and iterate through each element in this order
+    sorted_attributes = sorted(pruned_counts, key=pruned_counts.get, reverse=True)
+
+    # Create the FP-Tree
+    fp_tree = FP_Tree()
+
+    # For each example, sort according to the order of the sorted_attributes list and add to fp_tree
+    for sample in data_matrix:
+        
+        # Prune for minimum support before adding to tree
+        sample = list(filter(lambda x: x in sorted_attributes, sample))    
+        sample = sorted(sample, key=lambda x: sorted_attributes.index(x))
+        fp_tree.insert_list(sample, fp_tree.root)
+
+    # Run FP-Growth algorithm to find the frequent itemsets
+    output_itemsets = []
+
+    find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, max_antecedent_length, attribute_indices)
+
+    print("Number of Samples:", num_samples, "Minimum Support Threshold:", min_support_threshold, "Max Antecedent Length:", max_antecedent_length, "Antecedents Mined:", len(output_itemsets))
+
+    def create_expressions(raw_ant_list):
+        expression = [Expression(attribute_indices[ant], operator.eq, ant) for ant in raw_ant_list]
+        return expression
+
+    expressions_list = [create_expressions(raw_ant_list) for raw_ant_list in output_itemsets]
+    antecedent_list = [Antecedent(expression) for expression in expressions_list]
+    all_antecedents = AntecedentGroup(antecedent_list)
+
+    return all_antecedents
+
 # Finds itemsets of all lengths, can add functionality to support min_length or certain length only
-def find_itemsets(current_tree, suffixes_found, output_list, total_transactions, min_support, max_antecedent_length, attribute_index):
+def find_itemsets(current_tree, suffixes_found, output_list, total_transactions, min_support, max_antecedent_length, attribute_indices):
     reverse_ordering = sorted(list(current_tree.item_counts.keys()), key=current_tree.item_counts.get)
         
     for attribute in reverse_ordering:
@@ -26,7 +75,7 @@ def find_itemsets(current_tree, suffixes_found, output_list, total_transactions,
                 output_list.append(new_suffix_set)
             
             conditional_tree = create_conditional_tree(current_tree.get_prefix_paths(attribute))
-            find_itemsets(conditional_tree, new_suffix_set, output_list, total_transactions, min_support, max_antecedent_length, attribute_index)
+            find_itemsets(conditional_tree, new_suffix_set, output_list, total_transactions, min_support, max_antecedent_length, attribute_indices)
     
 # Create a conditional tree using paths generated from get_prefix_paths
 def create_conditional_tree(paths):

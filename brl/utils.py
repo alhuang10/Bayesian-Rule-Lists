@@ -1,6 +1,7 @@
 from collections import defaultdict
 import random
-    
+import math
+
 class Expression(object):
     def __init__(self, index, op, value):
         self.index = index
@@ -38,7 +39,7 @@ class Antecedent(object):
         for exp in self.expressions:
             exp_string += exp.value
             exp_string +=", "
-        print(exp_string)
+        return exp_string
             
 
 class AntecedentList(object):
@@ -79,7 +80,7 @@ class AntecedentList(object):
 
     def print_antecedent_list(self):
         for antecedent in self.antecedents:
-            antecedent.print_antecedent()
+            print(antecedent.print_antecedent())
 
     def get_first_applying_antecedent(self, x_sample):
 
@@ -89,7 +90,7 @@ class AntecedentList(object):
                 return i+1 
         # Return a 0 if none of the antecedents in the list apply to the sample
         return 0
-        
+
 class AntecedentGroup(object):
     def __init__(self, antecedents):
         self.antecedents_by_size = defaultdict(list)
@@ -111,3 +112,5 @@ class AntecedentGroup(object):
 
     def get_antecedents_by_length(self, length):
         return self.antecedents_by_size[length]
+
+

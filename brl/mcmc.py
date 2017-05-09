@@ -96,6 +96,8 @@ def check_gelman_rubin(chains, means, variances, threshold, x, y, all_antecedent
     v = ((samples - 1) * w + (NUM_CHAINS + 1) * b / NUM_CHAINS) / samples
 
     psrf = v / w
+    # print(psrf)
+    
     return psrf < threshold
 
 def brl_metropolis_hastings(min_num_iterations, burn_in, convergence_threshold, x, y, all_antecedents, alpha, lmda, eta):
@@ -130,4 +132,5 @@ def brl_metropolis_hastings(min_num_iterations, burn_in, convergence_threshold, 
 
         i += 1
 
+    print("Iterations Run:", i)
     return all_ds[0]
