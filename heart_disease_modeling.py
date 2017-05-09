@@ -151,7 +151,7 @@ def find_brl():
 	data["disease_status"] = data["disease_status"].apply(convert_disease_status)
 
 	# Getting the disease statuses
-	outcomes = data_only_relevant_features['disease_status'].values.flatten()
+	outcomes = data['disease_status'].values.flatten()
 
 	# *** Heart Disease-Specific Data Processing End***
 
