@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from brl.antecedent_mining import *
 import pandas as pd
 pd.options.mode.chained_assignment = None  # default='warn'
