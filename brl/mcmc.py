@@ -96,7 +96,7 @@ def check_gelman_rubin(chains, means, variances, threshold, x, y, all_antecedent
     v = ((samples - 1) * w + (NUM_CHAINS + 1) * b / NUM_CHAINS) / samples
 
     psrf = v / w
-    # print(psrf)
+    print(psrf)
     
     return psrf < threshold
 
