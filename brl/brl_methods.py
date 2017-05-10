@@ -113,9 +113,11 @@ def find_brl_point(generated_mcmc_samples, data_matrix, outcomes, all_antecedent
 def brl_point_predict(x_test_sample, N_posterior, antecedent_list, alpha):
 
     antecedent_index = antecedent_list.get_first_applying_antecedent(x_test_sample)
-
     posterior_dirichlet_parameter = list(map(add,alpha,N_posterior[antecedent_index]))
-    print("Posterior Dirichlet Parameter:", posterior_dirichlet_parameter)
-    print("Survival Probability:", posterior_dirichlet_parameter[1] / (sum(posterior_dirichlet_parameter)))
-    print("Death Probability:", posterior_dirichlet_parameter[0] / (sum(posterior_dirichlet_parameter)))
+
+    # print("Posterior Dirichlet Parameter:", posterior_dirichlet_parameter)
+    # print("Survival Probability:", posterior_dirichlet_parameter[1] / (sum(posterior_dirichlet_parameter)))
+    # print("Death Probability:", posterior_dirichlet_parameter[0] / (sum(posterior_dirichlet_parameter)))
+
+    return posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter))
 

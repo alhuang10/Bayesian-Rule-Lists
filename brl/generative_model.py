@@ -30,7 +30,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
     antecedent_list = []
     indices_selected_by_length = defaultdict(set) #maps lengths to indices already selected, for ensuring we do not select duplicates
     # antecedent_lengths_exhausted = []
-    available_antecedent_sizes = all_antecedents.sizes()
+    available_antecedent_sizes = list(all_antecedents.sizes())
     print("Available Antecedent Sizes:", available_antecedent_sizes)
 
     number_of_lists_sampled = 0.0
@@ -43,10 +43,10 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
 
         denominator = 0.0
         # Potential change if A runs out of antecedents
-        for k in all_antecedents.sizes():
+        for k in available_antecedent_sizes:
             denominator += (pow(eta, k) / math.factorial(k))
 
-        for c in all_antecedents.sizes():
+        for c in available_antecedent_sizes:
             sum += (pow(eta, c) / math.factorial(c)) / denominator
             if sum > p_card:
                 sampled_antecedent_cardinality = c
@@ -55,7 +55,9 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
         print("Sampled Antecedent Cardinality", sampled_antecedent_cardinality)
 
         correct_length_antecedents = all_antecedents.get_antecedents_by_length(sampled_antecedent_cardinality)
-        list_of_available_indices = list(set(range(len(correct_length_antecedents)-1)) - indices_selected_by_length[sampled_antecedent_cardinality])
+        list_of_available_indices = list(set(range(len(correct_length_antecedents))) - indices_selected_by_length[sampled_antecedent_cardinality])
+
+        assert(len(list_of_available_indices) != 0)
 
         # If there's only one available and we select it, mark that there are no more left
         if len(list_of_available_indices) == 1:
@@ -77,6 +79,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
 def p_y(y, x, d, alpha):
     n = [[0 for col in range(len(alpha))] for row in range(d.length() + 1)]
     for i in range(len(x)):
+        # print("First ant index:", d.get_first_antecedent_index(x[i]), y[i])
         n[d.get_first_antecedent_index(x[i])][y[i]] += 1
 
     log_prod = 0

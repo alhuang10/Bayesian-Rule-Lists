@@ -136,6 +136,8 @@ def find_brl():
 
 	# Need to drop rows with ?
 	data = data[data.vessels_colored != '?']
+	data = data[data.thallium_scan != '?']
+
 
 	# Turning data into processable antecedents 
 	data["age"] = data["age"].apply(convert_age)

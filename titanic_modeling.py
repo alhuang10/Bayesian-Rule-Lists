@@ -9,6 +9,7 @@ from brl.utils import *
 from brl.brl_methods import *
 import time
 import math
+from sklearn.model_selection import train_test_split
 
 def find_brl():
 
@@ -43,11 +44,12 @@ def find_brl():
     test_data_matrix = test_data_only_complete.as_matrix()
 
 
+
     data = pd.DataFrame.from_csv("data/titanic_dataset/train.csv")
     data_only_relevant_features =  data[['Survived','Pclass', 'Sex', 'Age']]
     data_only_relevant_features = data_only_relevant_features.dropna() # Remove rows with missing information
 
-    outcomes = data_only_relevant_features['Survived'].values.flatten()
+    outcomes_all = data_only_relevant_features['Survived'].values.flatten()
 
     data_only_complete = data_only_relevant_features[['Pclass', 'Sex', 'Age']]
     # Convert data into categorical variables
@@ -57,7 +59,15 @@ def find_brl():
 
     # ***Titanic-Specific Data Processing End***
 
-    data_matrix = data_only_complete.as_matrix()
+    data_matrix_all = data_only_complete.as_matrix()
+
+    # If train wtih all
+    # data_matrix = data_matrix_all
+    # outcomes = outcomes_all
+
+    # If train with only a subset
+    data_matrix, data_test, outcomes, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
+
     num_samples = len(data_matrix)
 
     # FP-Growth Parameters
@@ -67,7 +77,7 @@ def find_brl():
 
     # MCMC Parameters
     alpha = [1,1]
-    lmda = 3
+    lmda = 1
     eta = 1
     num_iterations = 2000
     burn_in = 0
@@ -100,8 +110,22 @@ def find_brl():
     # lower_bound, upper_bound = compute_dirichlet_confidence_interval(N_posterior[1], 0)
     # brl_point_predict(data_matrix[0], N_posterior, brl_point_list, alpha)
 
+    predictions = [brl_point_predict(test_sample, N_posterior, brl_point_list, alpha) for test_sample in data_test]
+
+    correct = 0
+    incorrect = 0
+    for i,val in enumerate(predictions):
+        if val == outcome_test[i]:
+            correct += 1
+        else:
+            incorrect += 1
+
+    print("Correct: {}".format(correct))
+    print("Incorrect: {}".format(incorrect))
+    print("Percentage: {}".format(correct/(correct+incorrect)))
+
     return N_posterior, brl_point_list
 
 
 if __name__=='__main__':
-    brl_point = find_brl()
+    N_posterior, brl_point_list = find_brl()
