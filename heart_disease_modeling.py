@@ -115,10 +115,10 @@ def find_brl():
 	def convert_vessels_colored(num):
 		return "{} Vessels Colored (Flourosopy)".format(num)
 
-	def convert_thallium_scan(num):
-		if num == 3:
+	def convert_thallium_scan(num_string):
+		if num_string == '3.0':
 			return "Normal Thallium Scan"
-		elif num == 6:
+		elif num_string == '6.0':
 			return "Fixed Defect Thallium Scan"
 		else:
 			return "Reversable Defect Thallium Scan"
@@ -133,6 +133,9 @@ def find_brl():
 
 	data = pd.DataFrame.from_csv("data/uci_heartdisease_dataset/cleveland_data_14.csv")
 	data = data.reset_index()
+
+	# Need to drop rows with ?
+	data = data[data.vessels_colored != '?']
 
 	# Turning data into processable antecedents 
 	data["age"] = data["age"].apply(convert_age)
