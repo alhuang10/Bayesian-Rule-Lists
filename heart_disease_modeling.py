@@ -1,16 +1,21 @@
 #!/usr/bin/env python
-from brl.antecedent_mining import *
-import pandas as pd
-pd.options.mode.chained_assignment = None  # default='warn'
+
 from collections import defaultdict
-from brl.mcmc import *
-from brl.generative_model import *
-from brl.utils import *
 import time
 import math
 from operator import add
 
-def find_brl():
+import pandas as pd
+pd.options.mode.chained_assignment = None  # default='warn'
+from sklearn.model_selection import train_test_split
+
+from brl.antecedent_mining import *
+from brl.mcmc import *
+from brl.generative_model import *
+from brl.utils import *
+from brl.brl_methods import *
+
+def find_brl(train_on_all_data):
 
     # *** Heart Disease-Specific Data Processing Start***
 
@@ -156,11 +161,29 @@ def find_brl():
 	data["disease_status"] = data["disease_status"].apply(convert_disease_status)
 
 	# Getting the disease statuses
-	outcomes = data['disease_status'].values.flatten()
+
+	outcomes_all = data['disease_status'].values.flatten()
+	data = data.drop('disease_status', 1) # Remove true predictive value from training data
+	data_matrix_all = data.as_matrix()
 
 	# *** Heart Disease-Specific Data Processing End***
 
-	data_matrix = data.as_matrix()
+	# Divide into training and test set
+	data_matrix_train, data_test, outcomes_train, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
+
+	# Variables used for remainder of code
+	outcomes = None
+	data_matrix = None
+
+	if train_on_all_data:
+		outcomes = outcomes_all
+		data_matrix = data_matrix_all
+	else:
+		# Train with only a subset and test on rest
+		data_matrix = data_matrix_train
+		outcomes = outcomes_train
+
+
 	num_samples = len(data_matrix)
 
 	# FP-Growth Parameters
@@ -168,10 +191,17 @@ def find_brl():
 	max_antecedent_length = 3 # Max length of antecedent lists to retrieve
 	number_of_possible_labels = 2
 
+	print("\nTraining on all data:", train_on_all_data)
+
+	print("\nFP-Growth Parameters")
+	print("Number of Training Samples: {}".format(num_samples))
+	print("Minimum Support Threshold: {}".format(min_support_threshold))
+	print("Max Antecedent Length: {}".format(max_antecedent_length))
+
 	# MCMC Parameters
 	alpha = [1,1]
-	lmda = 3
-	eta = 1
+	lmda = 5
+	eta = 2
 	num_iterations = 2000
 	burn_in = 0
 	convergence_threshold = 1.05
@@ -182,7 +212,14 @@ def find_brl():
 
 	# MCMC - Metropolis Hastings
 	print("\nMCMC Parameters:")
-	print("Alpha", alpha, "\n", "Lambda:", lmda, "\n", "Eta:", eta, "\n", "Min Number Iterations:", num_iterations, "\n", "Burn In", burn_in, "\n", "Convergence Threshold:", convergence_threshold, "\n")
+	print("Alpha", alpha)
+	print("Lambda:", lmda)
+	print("Eta:", eta)
+	print("Min Number Iterations:", num_iterations)
+	print("Burn In", burn_in)
+	print("Convergence Threshold:", convergence_threshold, "\n")
+
+	input("Press Enter to Begin MCMC...")
 
 	start = time.clock()
 	generated_mcmc_samples = brl_metropolis_hastings(num_iterations, burn_in, convergence_threshold, data_matrix, outcomes, all_antecedents, alpha, lmda, eta)
@@ -200,11 +237,15 @@ def find_brl():
 
 	print_posterior_antecedent_list_results(N_posterior, brl_point_list, confidence_interval_width, alpha)
 
-	# lower_bound, upper_bound = compute_dirichlet_confidence_interval(N_posterior[1], 0)
-	# brl_point_predict(data_matrix[0], N_posterior, brl_point_list, alpha)
+
+	# Evaluate the BRL on the test set
+	make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha)
+
 
 	return N_posterior, brl_point_list
 
 
 if __name__=='__main__':
-	N_posterior, brl_point_list = find_brl()
+
+	train_on_all_data = False
+	N_posterior, brl_point_list = find_brl(train_on_all_data)

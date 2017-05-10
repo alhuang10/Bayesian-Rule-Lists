@@ -37,7 +37,7 @@ class Antecedent(object):
     def print_antecedent(self):
         exp_string = ""
         for exp in self.expressions:
-            exp_string += exp.value
+            exp_string += str(exp.value)
             exp_string +=", "
         return exp_string
             

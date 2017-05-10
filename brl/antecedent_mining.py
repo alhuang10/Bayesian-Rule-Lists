@@ -19,7 +19,7 @@ def generate_antecedent_list(data_matrix, num_samples, min_support_threshold, ma
             if attribute not in attribute_indices:
                 attribute_indices[attribute] = i
 
-    print("Feature Counts:", list(counts.items()))
+    # print("Feature Counts:", list(counts.items()))
 
     # Prune the counts list, remove every element that has support lower than the threshold
     pruned_counts = {k: v for k,v in counts.items() if v/num_samples > min_support_threshold}
@@ -43,7 +43,7 @@ def generate_antecedent_list(data_matrix, num_samples, min_support_threshold, ma
 
     find_itemsets(fp_tree, [], output_itemsets, num_samples, min_support_threshold, max_antecedent_length, attribute_indices)
 
-    print("Number of Samples:", num_samples, "Minimum Support Threshold:", min_support_threshold, "Max Antecedent Length:", max_antecedent_length, "Antecedents Mined:", len(output_itemsets))
+    # print("Number of Samples:", num_samples, "Minimum Support Threshold:", min_support_threshold, "Max Antecedent Length:", max_antecedent_length, "Antecedents Mined:", len(output_itemsets))
 
     def create_expressions(raw_ant_list):
         expression = [Expression(attribute_indices[ant], operator.eq, ant) for ant in raw_ant_list]
