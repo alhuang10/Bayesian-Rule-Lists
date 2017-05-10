@@ -121,3 +121,21 @@ def brl_point_predict(x_test_sample, N_posterior, antecedent_list, alpha):
 
     return posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter))
 
+
+def make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha):
+
+    predictions = [brl_point_predict(test_sample, N_posterior, brl_point_list, alpha) for test_sample in data_test]
+
+    correct = 0
+    incorrect = 0
+    for i,val in enumerate(predictions):
+        if val == outcome_test[i]:
+            correct += 1
+        else:
+            incorrect += 1
+
+    print("Correct: {}".format(correct))
+    print("Incorrect: {}".format(incorrect))
+    print("Percentage: {}".format(correct/(correct+incorrect)))
+
+

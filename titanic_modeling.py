@@ -79,7 +79,7 @@ def find_brl():
     alpha = [1,1]
     lmda = 1
     eta = 1
-    num_iterations = 2000
+    num_iterations = 600
     burn_in = 0
     convergence_threshold = 1.05
     confidence_interval_width = 0.95
@@ -100,29 +100,16 @@ def find_brl():
 
     # Generate the N's for each posterior using the data
     N_posterior = generate_N_bold_posterior(data_matrix, outcomes, brl_point_list, number_of_possible_labels)
-
+ 
     print("N_posterior:")
     print(N_posterior)
     print("\n")
 
+    # Display the characteristics of the BRL point list
     print_posterior_antecedent_list_results(N_posterior, brl_point_list, confidence_interval_width, alpha)
 
-    # lower_bound, upper_bound = compute_dirichlet_confidence_interval(N_posterior[1], 0)
-    # brl_point_predict(data_matrix[0], N_posterior, brl_point_list, alpha)
-
-    predictions = [brl_point_predict(test_sample, N_posterior, brl_point_list, alpha) for test_sample in data_test]
-
-    correct = 0
-    incorrect = 0
-    for i,val in enumerate(predictions):
-        if val == outcome_test[i]:
-            correct += 1
-        else:
-            incorrect += 1
-
-    print("Correct: {}".format(correct))
-    print("Incorrect: {}".format(incorrect))
-    print("Percentage: {}".format(correct/(correct+incorrect)))
+    # Evaluate the BRL on the test set
+    make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha)
 
     return N_posterior, brl_point_list
 
