@@ -118,6 +118,7 @@ def brl_point_predict(x_test_sample, N_posterior, antecedent_list, alpha):
     # print("Posterior Dirichlet Parameter:", posterior_dirichlet_parameter)
     # print("Survival Probability:", posterior_dirichlet_parameter[1] / (sum(posterior_dirichlet_parameter)))
     # print("Death Probability:", posterior_dirichlet_parameter[0] / (sum(posterior_dirichlet_parameter)))
+    # print(posterior_dirichlet_parameter, posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter)))
 
     return posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter))
 

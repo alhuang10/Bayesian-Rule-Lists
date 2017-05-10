@@ -11,40 +11,24 @@ import time
 import math
 from sklearn.model_selection import train_test_split
 
+def convert_class(passenger_class):
+    if passenger_class == 1:
+        return "First Class"
+    elif passenger_class == 2:
+        return "Second Class"
+    else: 
+        return "Third Class"
+    
+def convert_age(age):
+    adult_age_cutoff = 18
+    if age >= adult_age_cutoff:
+        return "Adult"
+    else:
+        return "Child"
+
 def find_brl():
 
     # ***Titanic-Specific Data Processing Start***
-    def convert_class(passenger_class):
-        if passenger_class == 1:
-            return "First Class"
-        elif passenger_class == 2:
-            return "Second Class"
-        else: 
-            return "Third Class"
-        
-    def convert_age(age):
-        adult_age_cutoff = 18
-        if age >= adult_age_cutoff:
-            return "Adult"
-        else:
-            return "Child"
-
-    test_data = pd.DataFrame.from_csv("data/titanic_dataset/test.csv")
-    test_data_only_relevant_features =  test_data[['Pclass', 'Sex', 'Age']]
-    test_data_only_relevant_features = test_data_only_relevant_features.dropna()
-
-    # test_outcomes = test_data_only_relevant_features['Survived'].values.flatten()
-
-    test_data_only_complete = test_data_only_relevant_features[['Pclass', 'Sex', 'Age']]
-    # Convert data into categorical variables
-    test_data_only_complete['Pclass'] = test_data_only_complete['Pclass'].apply(convert_class)
-    test_data_only_complete['Age'] = test_data_only_complete['Age'].apply(convert_age)
-    test_data_only_complete['Sex'] = test_data_only_complete['Sex'].apply(lambda x: str.title(x))   
-
-    test_data_matrix = test_data_only_complete.as_matrix()
-
-
-
     data = pd.DataFrame.from_csv("data/titanic_dataset/train.csv")
     data_only_relevant_features =  data[['Survived','Pclass', 'Sex', 'Age']]
     data_only_relevant_features = data_only_relevant_features.dropna() # Remove rows with missing information
@@ -62,11 +46,13 @@ def find_brl():
     data_matrix_all = data_only_complete.as_matrix()
 
     # If train wtih all
-    # data_matrix = data_matrix_all
-    # outcomes = outcomes_all
+    data_matrix = data_matrix_all
+    outcomes = outcomes_all
+
 
     # If train with only a subset
-    data_matrix, data_test, outcomes, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
+    # data_matrix, data_test, outcomes, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
+
 
     num_samples = len(data_matrix)
 
@@ -77,9 +63,9 @@ def find_brl():
 
     # MCMC Parameters
     alpha = [1,1]
-    lmda = 1
+    lmda = 3
     eta = 1
-    num_iterations = 600
+    num_iterations = 2000
     burn_in = 0
     convergence_threshold = 1.05
     confidence_interval_width = 0.95
@@ -109,9 +95,39 @@ def find_brl():
     print_posterior_antecedent_list_results(N_posterior, brl_point_list, confidence_interval_width, alpha)
 
     # Evaluate the BRL on the test set
-    make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha)
+    # make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha)
 
     return N_posterior, brl_point_list
+
+# Generate file for kaggle upload
+def generate_titanic_kaggle_prediction(N_posterior, brl_point_list, alpha):
+
+    output_file = open("titanic_test_set_results.txt", 'w')
+    output_file.write("PassengerId,Survived\n")
+
+    test_data = pd.DataFrame.from_csv("data/titanic_dataset/test.csv")
+    test_data = test_data.reset_index()
+    test_data =  test_data[['PassengerId','Pclass', 'Sex', 'Age']]
+    test_data.fillna(30) # Replace missing age with 30
+
+    test_data['Pclass'] = test_data['Pclass'].apply(convert_class)
+    test_data['Age'] = test_data['Age'].apply(convert_age)
+    test_data['Sex'] = test_data['Sex'].apply(lambda x: str.title(x))
+
+    test_data_matrix = test_data.as_matrix()
+
+    for i, features in enumerate(test_data_matrix):
+        passenger_id = features[0]
+        feats = features[1:]
+        prediction = brl_point_predict(feats, N_posterior, brl_point_list, alpha)
+
+        output_file.write(str(passenger_id))
+        output_file.write(",")
+        output_file.write(str(prediction))
+        output_file.write("\n")
+
+    output_file.close()
+
 
 
 if __name__=='__main__':
