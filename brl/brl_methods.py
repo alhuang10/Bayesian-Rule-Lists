@@ -16,23 +16,21 @@ def print_posterior_antecedent_list_results(N_posterior, brl_point_list, confide
         else:
             print("Else if", end=" ")
         posterior_dirichlet_parameter = list(map(add, alpha, N_posterior[i+1]))
-        print(antecedent.print_antecedent(), end="")
+        print(antecedent.print_antecedent())
 
-        # Titanic Specific
-        SURVIVAL_LABEL = 1
-        print("Survial Probability: {}".format(posterior_dirichlet_parameter[SURVIVAL_LABEL] / sum(posterior_dirichlet_parameter)), end = " ")
-        confidence_interval = compute_dirichlet_confidence_interval(posterior_dirichlet_parameter, 0, confidence_interval_width)
-        print(confidence_interval)
+        for j in range(len(N_posterior[i + 1])):
+            print("\tLabel {} probability: {}".format(j, posterior_dirichlet_parameter[j] / sum(posterior_dirichlet_parameter)), end=" ")
+            confidence_interval = compute_dirichlet_confidence_interval(posterior_dirichlet_parameter, j, confidence_interval_width)
+            print(confidence_interval)
 
     # For no antecedent matching
     if 0 in N_posterior:
         posterior_dirichlet_parameter = list(map(add, alpha, N_posterior[0]))
-        print("Else,", end=" ")
-        print("Survial Probability: {}".format(posterior_dirichlet_parameter[SURVIVAL_LABEL] / sum(posterior_dirichlet_parameter)), end = " ")
-        confidence_interval = compute_dirichlet_confidence_interval(posterior_dirichlet_parameter, 0, confidence_interval_width)
-        print(confidence_interval)
-    pass
-
+        print("Else,")
+        for j in range(len(N_posterior[i + 1])):
+            print("\tLabel {} probability: {}".format(j, posterior_dirichlet_parameter[j] / sum(posterior_dirichlet_parameter)), end=" ")
+            confidence_interval = compute_dirichlet_confidence_interval(posterior_dirichlet_parameter, j, confidence_interval_width)
+            print(confidence_interval)
 
 def generate_N_bold_posterior(data_matrix, outcomes, brl_point_list, number_of_possible_labels):
 

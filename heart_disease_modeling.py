@@ -131,7 +131,7 @@ def find_brl(train_on_all_data):
 
 	def convert_disease_status(num):
 		if num > 0:
-			return 1
+			return min(num, 4)
 		else:
 			return 0
 
@@ -189,7 +189,7 @@ def find_brl(train_on_all_data):
 	# FP-Growth Parameters
 	min_support_threshold = .1 # Elements that do not meet the support threshold are excluded
 	max_antecedent_length = 3 # Max length of antecedent lists to retrieve
-	number_of_possible_labels = 2
+	number_of_possible_labels = 5
 
 	print("\nTraining on all data:", train_on_all_data)
 
@@ -199,7 +199,7 @@ def find_brl(train_on_all_data):
 	print("Max Antecedent Length: {}".format(max_antecedent_length))
 
 	# MCMC Parameters
-	alpha = [1,1]
+	alpha = [1, 1, 1, 1, 1]
 	lmda = 5
 	eta = 2
 	num_iterations = 2000
