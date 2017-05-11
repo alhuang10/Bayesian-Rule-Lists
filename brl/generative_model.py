@@ -52,7 +52,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
                 sampled_antecedent_cardinality = c
                 break
 
-        print("Sampled Antecedent Cardinality", sampled_antecedent_cardinality)
+        # print("Sampled Antecedent Cardinality", sampled_antecedent_cardinality)
 
         correct_length_antecedents = all_antecedents.get_antecedents_by_length(sampled_antecedent_cardinality)
         list_of_available_indices = list(set(range(len(correct_length_antecedents))) - indices_selected_by_length[sampled_antecedent_cardinality])
@@ -61,7 +61,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
 
         # If there's only one available and we select it, mark that there are no more left
         if len(list_of_available_indices) == 1:
-            print("Removing cardinality:", sampled_antecedent_cardinality)
+            # print("Removing cardinality:", sampled_antecedent_cardinality)
             available_antecedent_sizes.remove(sampled_antecedent_cardinality)
 
         selected_index = random.choice(list_of_available_indices) # select an index that we haven't already
@@ -71,7 +71,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
         antecedent_list.append(correct_length_antecedents[selected_index])
         number_of_lists_sampled += 1
         
-    print("Indices selected by cardinality length:", indices_selected_by_length)
+    # print("Indices selected by cardinality length:", indices_selected_by_length)
 
     return AntecedentList(antecedent_list)
 

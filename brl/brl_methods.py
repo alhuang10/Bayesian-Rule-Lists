@@ -174,7 +174,7 @@ def make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_poin
         print(total_negative_outcomes - false_positive_count, false_positive_count)
         print(total_positive_outcomes - true_positive_count, true_positive_count)
 
-    return fpr, tpr
+    return fpr, tpr, correct/(correct+incorrect)
 
 # Finds AUC using fpr,tpr points and trapezoidal area method
 def find_auc(data_test, outcome_test, N_posterior, brl_point_list, alpha):
@@ -183,7 +183,7 @@ def find_auc(data_test, outcome_test, N_posterior, brl_point_list, alpha):
     tprs = []
     for i in range(0, 101):
         threshold = i/100.0
-        fpr, tpr = make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha, threshold, verbose=False)
+        fpr, tpr, accuracy = make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha, threshold, verbose=False)
         fprs.append(fpr)
         tprs.append(tpr)
 

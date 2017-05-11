@@ -108,8 +108,8 @@ def find_brl():
     num_samples = len(data_matrix)
 
     # FP-Growth Parameters
-    min_support_threshold = .08 # Elements that do not meet the support threshold are excluded
-    max_antecedent_length = 3 # Max length of antecedent lists to retrieve
+    min_support_threshold = .1 # Elements that do not meet the support threshold are excluded
+    max_antecedent_length = 5 # Max length of antecedent lists to retrieve
     number_of_possible_labels = 2
 
     print("\nTraining on all data")
