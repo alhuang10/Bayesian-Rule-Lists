@@ -79,7 +79,7 @@ def generate_default_antecedent_list(all_antecedents, lmda, eta):
 def p_y(y, x, d, alpha):
     n = [[0 for col in range(len(alpha))] for row in range(d.length() + 1)]
     for i in range(len(x)):
-        # print("First ant index:", d.get_first_antecedent_index(x[i]), y[i])
+        # print("Indices (must be numbers):", d.get_first_antecedent_index(x[i]), y[i])
         n[d.get_first_antecedent_index(x[i])][y[i]] += 1
 
     log_prod = 0

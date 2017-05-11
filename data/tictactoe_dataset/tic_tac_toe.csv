@@ -1,3 +1,4 @@
+top_left,top_middle,top_right,middle_left,middle_middle,middle_right,bottom_left,bottom_middle,bottom_right,result
 x,x,x,x,o,o,x,o,o,positive
 x,x,x,x,o,o,o,x,o,positive
 x,x,x,x,o,o,o,o,x,positive

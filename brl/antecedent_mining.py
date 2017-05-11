@@ -7,7 +7,7 @@ from .utils import *
 from collections import defaultdict
 
 def generate_antecedent_list(data_matrix, num_samples, min_support_threshold, max_antecedent_length):
-    
+
     counts = defaultdict(int)
     attribute_indices =  {} # Keeps track of the index of an attribute in the data
 
@@ -70,8 +70,8 @@ def find_itemsets(current_tree, suffixes_found, output_list, total_transactions,
             new_suffix_set = [attribute]
             new_suffix_set.extend(suffixes_found)
             
-            # Only get specific length antecedents
             if len(new_suffix_set) <= max_antecedent_length:
+            # if len(new_suffix_set) == max_antecedent_length:
                 output_list.append(new_suffix_set)
             
             conditional_tree = create_conditional_tree(current_tree.get_prefix_paths(attribute))

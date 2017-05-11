@@ -7,7 +7,6 @@ from brl.generative_model import *
 from brl.antecedent_mining import *
 from operator import add
 import scipy.stats as st
-from sklearn.model_selection import train_test_split
 
 def print_posterior_antecedent_list_results(N_posterior, brl_point_list, confidence_interval_width, alpha):
 
