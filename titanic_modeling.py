@@ -26,7 +26,7 @@ def convert_age(age):
     else:
         return "Child"
 
-def find_brl():
+def find_brl(train_with_all):
 
     # ***Titanic-Specific Data Processing Start***
     data = pd.DataFrame.from_csv("data/titanic_dataset/train.csv")
@@ -45,14 +45,20 @@ def find_brl():
 
     data_matrix_all = data_only_complete.as_matrix()
 
-    # If train wtih all
-    data_matrix = data_matrix_all
-    outcomes = outcomes_all
+    data_matrix = None
+    outcomes = None
+    data_test = None
+    outcomes_test = None
+
+    if train_with_all:
+        data_matrix = data_matrix_all
+        outcomes = outcomes_all
+        _, data_test, _, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
 
 
-    # If train with only a subset
-    # data_matrix, data_test, outcomes, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
-
+    else:
+        # If train with only a subset
+        data_matrix, data_test, outcomes, outcome_test = train_test_split(data_matrix_all, outcomes_all, test_size=.25)
 
     num_samples = len(data_matrix)
 
@@ -61,21 +67,34 @@ def find_brl():
     max_antecedent_length = 3 # Max length of antecedent lists to retrieve
     number_of_possible_labels = 2
 
+    print("\nFP-Growth Parameters")
+    print("Number of Training Samples: {}".format(num_samples))
+    print("Minimum Support Threshold: {}".format(min_support_threshold))
+    print("Max Antecedent Length: {}".format(max_antecedent_length))
+
     # MCMC Parameters
     alpha = [1,1]
     lmda = 3
     eta = 1
     num_iterations = 2000
-    burn_in = 0
+    burn_in = 500
     convergence_threshold = 1.05
     confidence_interval_width = 0.95
 
     # Frequent-Pattern (FP) Growth Algorithm: (brl.antecedent_mining)
     all_antecedents = generate_antecedent_list(data_matrix, num_samples, min_support_threshold, max_antecedent_length)
 
+    print("Number of Antecdents Mined: {}".format(len(all_antecedents.antecedents)))
     # MCMC - Metropolis Hastings
     print("\nMCMC Parameters:")
-    print("Alpha", alpha, "\n", "Lambda:", lmda, "\n", "Eta:", eta, "\n", "Min Number Iterations:", num_iterations, "\n", "Burn In", burn_in, "\n", "Convergence Threshold:", convergence_threshold, "\n")
+    print("Alpha", alpha)
+    print("Lambda:", lmda)
+    print("Eta:", eta)
+    print("Min Number Iterations:", num_iterations)
+    print("Burn In", burn_in)
+    print("Convergence Threshold:", convergence_threshold, "\n")
+
+    input("Press Enter to Begin MCMC...")
 
     start = time.clock()
     generated_mcmc_samples = brl_metropolis_hastings(num_iterations, burn_in, convergence_threshold, data_matrix, outcomes, all_antecedents, alpha, lmda, eta)
@@ -95,8 +114,8 @@ def find_brl():
     print_posterior_antecedent_list_results(N_posterior, brl_point_list, confidence_interval_width, alpha)
 
     # Evaluate the BRL on the test set
-    # make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha)
-
+    make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha, 0.5)
+    find_auc(data_test, outcome_test, N_posterior, brl_point_list, alpha)
     return N_posterior, brl_point_list
 
 # Generate file for kaggle upload
@@ -131,4 +150,8 @@ def generate_titanic_kaggle_prediction(N_posterior, brl_point_list, alpha):
 
 
 if __name__=='__main__':
-    N_posterior, brl_point_list = find_brl()
+    
+    train_with_all = False
+    N_posterior, brl_point_list = find_brl(train_with_all)
+    alpha = [1,1]
+    generate_titanic_kaggle_prediction(N_posterior, brl_point_list, alpha)

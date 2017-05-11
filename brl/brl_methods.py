@@ -7,6 +7,7 @@ from brl.generative_model import *
 from brl.antecedent_mining import *
 from operator import add
 import scipy.stats as st
+from sklearn.metrics import auc
 
 def print_posterior_antecedent_list_results(N_posterior, brl_point_list, confidence_interval_width, alpha):
 
@@ -108,33 +109,90 @@ def find_brl_point(generated_mcmc_samples, data_matrix, outcomes, all_antecedent
 
     return brl_point_list, highest_posterior_probability
 
-def brl_point_predict(x_test_sample, N_posterior, antecedent_list, alpha):
+def brl_point_predict(x_test_sample, N_posterior, antecedent_list, alpha, probability_threshold=0.5):
 
     antecedent_index = antecedent_list.get_first_applying_antecedent(x_test_sample)
     posterior_dirichlet_parameter = list(map(add,alpha,N_posterior[antecedent_index]))
 
-    # print("Posterior Dirichlet Parameter:", posterior_dirichlet_parameter)
-    # print("Survival Probability:", posterior_dirichlet_parameter[1] / (sum(posterior_dirichlet_parameter)))
-    # print("Death Probability:", posterior_dirichlet_parameter[0] / (sum(posterior_dirichlet_parameter)))
-    # print(posterior_dirichlet_parameter, posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter)))
+    if len(posterior_dirichlet_parameter) == 2:
+        positive_probability = posterior_dirichlet_parameter[1] / sum(posterior_dirichlet_parameter)
 
-    return posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter))
+        if positive_probability > probability_threshold:
+            return 1
+        else:
+            return 0
+
+    # For multilabel
+    else:
+        return posterior_dirichlet_parameter.index(max(posterior_dirichlet_parameter))
 
 
-def make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha):
+def make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha, threshold, verbose=True):
 
-    predictions = [brl_point_predict(test_sample, N_posterior, brl_point_list, alpha) for test_sample in data_test]
+    predictions = [brl_point_predict(test_sample, N_posterior, brl_point_list, alpha, probability_threshold=threshold) for test_sample in data_test]
 
     correct = 0
     incorrect = 0
+
+    true_positive_count = 0
+    total_positive_outcomes = 0
+
+    false_positive_count = 0
+    total_negative_outcomes = 0
+
+
     for i,val in enumerate(predictions):
+
+        if outcome_test[i] == 1:
+            total_positive_outcomes += 1
+
+            if val == 1:
+                true_positive_count += 1
+        else:
+            total_negative_outcomes += 1
+            if val == 1:
+                false_positive_count += 1
+
+
         if val == outcome_test[i]:
             correct += 1
         else:
             incorrect += 1
 
-    print("Correct: {}".format(correct))
-    print("Incorrect: {}".format(incorrect))
-    print("Percentage: {}".format(correct/(correct+incorrect)))
+    fpr = false_positive_count / total_negative_outcomes
+    tpr = true_positive_count / total_positive_outcomes
+    
+    if verbose:
+        print("Correct: {}".format(correct))
+        print("Incorrect: {}".format(incorrect))
+        print("Percentage: {}".format(correct/(correct+incorrect)))
+        print("False Positive Count, Total Negative Outcomes", false_positive_count, total_negative_outcomes)
+        print("False Positive Rate: {}".format(fpr))
+        print("True Positive Rate: {}".format(tpr))
+        print("True Positive Count, Total Positive Outcomes", true_positive_count, total_positive_outcomes)
+        print("Confusion Matrix:")
+        print(total_negative_outcomes - false_positive_count, false_positive_count)
+        print(total_positive_outcomes - true_positive_count, true_positive_count)
+
+    return fpr, tpr
+
+# Finds AUC using fpr,tpr points and trapezoidal area method
+def find_auc(data_test, outcome_test, N_posterior, brl_point_list, alpha):
+
+    fprs = []
+    tprs = []
+    for i in range(0, 101):
+        threshold = i/100.0
+        fpr, tpr = make_brl_test_set_predictions(data_test, outcome_test, N_posterior, brl_point_list, alpha, threshold, verbose=False)
+        fprs.append(fpr)
+        tprs.append(tpr)
+
+    auc_value = auc(fprs, tprs)
+    print("AUC: {}".format(auc_value))
+    return auc_value
+
+
+
+
 
 
