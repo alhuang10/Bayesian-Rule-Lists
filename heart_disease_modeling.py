@@ -300,7 +300,7 @@ def find_brl(train_on_all_data):
 		# MCMC Parameters
 		# alpha = [1, 1, 1, 1, 1]
 		alpha = [1,1]
-		lmda = 6
+		lmda = 5
 		eta = 2
 		num_iterations = 2000
 		burn_in = 1000
